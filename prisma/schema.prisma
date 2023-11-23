@@ -1,0 +1,229 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  // previewFeatures = ["clientExtensions"]
+}
+
+// Necessary for Next auth
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? // @db.Text
+  access_token      String? // @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? // @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+// next-auth stop
+
+model User {
+  id                String         @id @default(cuid())
+  email             String         @unique
+  emailVerified     DateTime?      @map("email_verified")
+  tag               String?        @unique
+  notificationToken String         @default("")
+  password          String         @unique   /// @encrypted 
+  passwordHash      String?        @unique   /// @encryption:hash(password)
+  accounts          Account[]
+  sessions          Session[]
+  phone_number      String? /// @encrypted
+  name              String
+  icon              String         @default("https://razvan-hotel-app-bucket.s3.eu-central-1.amazonaws.com/phantom-mobile+essentials/logo+(2).png")
+  bgImage           String?
+  bgOpacity         Float?
+  department        Department     @relation(fields: [departmentName], references: [name], onDelete: Cascade, onUpdate: Cascade)
+  departmentName    String         @default("Nedesemnat")
+  role              String         @default("Nedesemnat")
+  tasksCreated      Task[]         @relation(name: "Creator")
+  tasksCarried      Task[]         @relation(name: "Carrier")
+  groups            Group_member[]
+  isAdmin           Boolean        @default(false)
+  blocked           String[]        @default([])
+  colors            String[]       @default(["#4C1D95", "#312E81", "#ba85ff"])
+
+  @@map("users")
+  // @@unique([password])
+}
+
+model Conversation {
+  id             String         @id @default(cuid())
+  name           String
+  icon           String
+  messages       Message[]
+  members        Group_member[]
+  media          String[]       @default([])
+  lastInteracted DateTime
+  isGroup        Boolean        @default(false)
+  blocked        String[]       @default([])
+
+  @@map("conversations")
+}
+
+model Group_member {
+  id       String       @id @default(cuid())
+  conv     Conversation @relation(fields: [convId], references: [id])
+  convId   String
+  user     User         @relation(fields: [userId], references: [id])
+  userId   String
+  messages Message[]
+  name     String
+  joinDate DateTime
+  leftDate DateTime?
+  muted    Boolean      @default(false)
+  isAdmin  Boolean      @default(false)
+
+  @@map("group_members")
+}
+
+model Message {
+  messageId      String       @id @default(cuid())
+  from_userId    String
+  message        String
+  replyId        String?
+  reply          Message?     @relation("reply", fields: [replyId], references: [messageId])
+  replies        Message[]    @relation("reply")
+  media          String[]     @default([]) /// @encrypted
+  date           DateTime
+  originalSender String       @default("")
+  forwarded      Boolean      @default(false)
+  edited         Boolean      @default(false)
+  editedDate     DateTime     @default("2023-07-08T16:37:01.830Z")
+  deleted        Boolean      @default(false)
+  read           String[]
+  hidden         String[]
+  memberId       String
+  member         Group_member @relation(fields: [memberId], references: [id])
+  conv           Conversation @relation(fields: [convId], references: [id])
+  convId         String
+
+  @@map("messages")
+}
+
+model Department {
+  id      String @id @default(cuid())
+  name    String @unique
+  members User[]
+  tasks   Task[]
+
+  @@map("departments")
+}
+
+model Task {
+  id             String     @id @default(cuid())
+  department     Department @relation(fields: [departmentName], references: [name])
+  departmentName String
+  creator        User       @relation(name: "Creator", fields: [creatorId], references: [id])
+  creatorId      String
+  carrier        User?      @relation(name: "Carrier", fields: [carrierId], references: [id])
+  carrierId      String?
+  title          String 
+  description    String? 
+  dateAdded      DateTime
+  dateCompleted  DateTime?
+  bookmarked     String[]
+  status         String
+
+  @@map("tasks")
+}
+
+model TaskHistory {
+  id             String    @id @default(cuid())
+  departmentName String
+  creatorId      String
+  creatorName    String
+  carrierId      String?
+  carrierName    String?
+  title          String
+  description    String?
+  dateAdded      DateTime
+  dateCompleted  DateTime?
+  bookmarked     String[]
+  status         String
+
+  @@map("tasks_history")
+}
+
+model Invoice {
+  id            String      @id @default(cuid())
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  reservationId String
+  total         Float
+  surcharges    Float
+  emissionDate  DateTime
+  paid          Boolean
+
+  @@map("invoices")
+}
+
+model Reservation {
+  id String @id @default(cuid())
+
+  clientName    String
+  billingName   String
+  phone         String
+  email         String
+  room          Room      @relation(fields: [roomId], references: [id])
+  roomId        String
+  arrivalDate   DateTime
+  departureDate DateTime
+  days          Int
+  invoices      Invoice[]
+
+  @@map("reservations")
+}
+
+model Room {
+  id           String        @id @default(cuid())
+  number       String
+  floor        Int
+  status       Status
+  beds         Int
+  occupants    Int
+  reservations Reservation[]
+  type         RoomType      @relation(fields: [typeId], references: [id])
+  typeId       String
+  assets       String
+
+  @@map("rooms")
+}
+
+model RoomType {
+  id            String @id @default(cuid())
+  typeName      String
+  originalPrice Float
+  discount      Float
+  description   String
+  rooms         Room[]
+
+  @@map("room_types")
+}
+
+enum Status {
+  OCCUPIED
+  FREE
+  RESERVED
+  UNPREPARED
+  CLEANING
+  SERVICEABLE
+}

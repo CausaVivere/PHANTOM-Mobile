@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "146791059774",
+    "project_id": "phantom-mobile-88cfc",
+    "storage_bucket": "phantom-mobile-88cfc.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:146791059774:android:0f545b7632b1296effdc6f",
+        "android_client_info": {
+          "package_name": "apps.phantom"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "146791059774-h895u5oruf3k5qgevporqvitbgbvn8ts.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4osD6iy3So-maVDmZkDcuZo6wcrVTUZE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "146791059774-h895u5oruf3k5qgevporqvitbgbvn8ts.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

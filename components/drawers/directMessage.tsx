@@ -1285,7 +1285,7 @@ export default function DirectMessage({
       <audio
         ref={audioRef}
         className="hidden"
-        src="https://razvan-hotel-app-bucket.s3.eu-central-1.amazonaws.com/phantom-mobile+essentials/newmsglowervolume.mp3"
+        src=""
       />
 
       {/* prettier-ignore-end */}

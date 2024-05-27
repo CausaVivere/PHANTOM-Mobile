@@ -49,7 +49,7 @@ model User {
   sessions          Session[]
   phone_number      String? /// @encrypted
   name              String
-  icon              String         @default("https://razvan-hotel-app-bucket.s3.eu-central-1.amazonaws.com/phantom-mobile+essentials/logo+(2).png")
+  icon              String         @default("")
   bgImage           String?
   bgOpacity         Float?
   department        Department     @relation(fields: [departmentName], references: [name], onDelete: Cascade, onUpdate: Cascade)
